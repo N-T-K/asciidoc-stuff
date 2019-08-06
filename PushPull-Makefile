@@ -1,4 +1,5 @@
 #!/usr/bin/make 
+# This intended for the local machine to push updates to a remote server. Rename this to Makefile. 
 
 # tracked files 
 FILES = *.txt *.pdf *.csv *.make *.html *.jpeg *.json *.out 
