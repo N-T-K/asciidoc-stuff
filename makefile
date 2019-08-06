@@ -1,0 +1,44 @@
+#!/usr/bin/make 
+
+# tracked files 
+FILES = *.txt *.pdf *.csv *.make *.html *.jpeg *.json *.out 
+HOST = <hostname>
+USER = nate
+REMOTE_DIR = <directory>
+PUSH_COMMAND = scp # could use rsync
+PULL_COMMAND = rsync -av -e ssh --exclude='*.html' --exclude='Makefile'
+REMOTE_MAKE = ssh -t $(USER)@$(HOST) "make -C $(REMOTE_DIR)"
+LAST_PUSH	= .last_push
+
+.PHONY : push remote hosts pull all
+
+push : push-update-makefile.make $(LAST_PUSH)
+
+all : push hosts
+
+$(LAST_PUSH) : $(FILES) 
+	$(PUSH_COMMAND) $? $(USER)@$(HOST):$(REMOTE_DIR)
+	make remote
+	touch $(LAST_PUSH)
+# $? auto var keeps list of dependencies newer than target
+
+# runs make on remote host to convert the .txt to .html
+remote : 
+	$(REMOTE_MAKE)
+
+# keeps the makefile updated
+push-update-makefile.make : makefile 
+	cp makefile push-update-makefile.make
+
+# pulls from google sheets to update <table-filename>.csv pulls from romeo to get the
+# current configuration for guests and bridge 
+hosts :
+	curl -o <table-filename>.csv "https://docs.google.com/spreadsheets/d/{DOCUMENTID}/gviz/tq?tqx=out:csv&sheet={SHEETNAME}"
+	ssh <user>@<some-host> "<command-to-run>"
+	scp <user>@<some-host>:~/<file-path> .
+	make push
+
+pull :
+	$(PULL_COMMAND) $(USER)@$(HOST):$(REMOTE_DIR)/* .
+
+
